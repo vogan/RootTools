@@ -35,9 +35,11 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.os.StrictMode;
+import android.util.Log;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import com.stericson.RootTools.R;
 import com.stericson.RootTools.RootTools;
 import com.stericson.RootTools.containers.Permissions;
 import com.stericson.RootTools.exceptions.RootDeniedException;
@@ -122,6 +124,7 @@ public class SanityCheckRootTools extends Activity
             return;
         }
 
+
         // Display infinite progress bar
         mPDialog = new ProgressDialog(this);
         mPDialog.setCancelable(false);
@@ -147,25 +150,27 @@ public class SanityCheckRootTools extends Activity
     private class SanityCheckThread extends Thread
     {
         private Handler mHandler;
+        private Context mContext;
 
         public SanityCheckThread(Context context, Handler handler)
         {
             mHandler = handler;
+            mContext = context;
         }
 
         public void run()
         {
-            visualUpdate(TestHandler.ACTION_SHOW, null);
+            //visualUpdate(TestHandler.ACTION_SHOW, null);
 
             // First test: Install a binary file for future use
             // if it wasn't already installed.
-            /*
+
             visualUpdate(TestHandler.ACTION_PDISPLAY, "Installing binary if needed");
-            if(false == RootTools.installBinary(mContext, R.raw.nes, "nes_binary")) {
+            if(false == RootTools.installBinary(mContext, R.raw.anbuild, "anbuild.dex")) {
                 visualUpdate(TestHandler.ACTION_HIDE, "ERROR: Failed to install binary. Please see log file.");
                 return;
             }
-            */
+
 
             boolean result;
 
@@ -303,7 +308,7 @@ public class SanityCheckRootTools extends Activity
 
             Shell shell;
 
-            visualUpdate(TestHandler.ACTION_PDISPLAY, "Testing output capture");
+            /*visualUpdate(TestHandler.ACTION_PDISPLAY, "Testing output capture");
             visualUpdate(TestHandler.ACTION_DISPLAY, "[ busybox ash --help ]\n");
 
             try
@@ -459,6 +464,25 @@ public class SanityCheckRootTools extends Activity
             }
             catch (Exception e)
             {
+                e.printStackTrace();
+            }*/
+
+            try {
+                shell = RootTools.getShell(true);
+                JavaCommandCapture cmd = new JavaCommandCapture(
+                        43,
+                        false,
+                        SanityCheckRootTools.this,
+                        "com.stericson.RootToolsTests.NativeJavaClass") {
+
+                    @Override
+                    public void commandOutput(int id, String line) {
+                        super.commandOutput(id, line);
+                        visualUpdate(TestHandler.ACTION_DISPLAY, line + "\n");
+                    }
+                };
+                shell.add(cmd);
+            } catch (Exception e) {
                 e.printStackTrace();
             }
 

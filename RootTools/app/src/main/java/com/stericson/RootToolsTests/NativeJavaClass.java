@@ -1,5 +1,7 @@
 package com.stericson.RootToolsTests;
 
+import android.os.Process;
+
 import com.stericson.RootTools.containers.RootClass;
 
 import java.io.BufferedWriter;
@@ -15,6 +17,8 @@ public class NativeJavaClass
     {
         System.out.println("NativeJavaClass says: oh hi there.");
         String p = "/data/data/com.android.browser/cache";
+        Process pr = new Process();
+        System.out.println("NativeJavaClass runs with UID: " + pr.myUid());
         File f = new File(p);
         String[] fl = f.list();
         if (fl != null)

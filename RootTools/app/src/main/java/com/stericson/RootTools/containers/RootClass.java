@@ -22,14 +22,11 @@ public class RootClass /* #ANNOTATIONS extends AbstractProcessor */
     }
     */
 
-    static String PATH_TO_DX = "/Users/Chris/Projects/android-sdk-macosx/build-tools/18.0.1/dx";
-
     enum READ_STATE
     {
         STARTING, FOUND_ANNOTATION;
     }
 
-    ;
 
     public RootClass(String[] args) throws ClassNotFoundException, NoSuchMethodException,
             IllegalAccessException, InvocationTargetException, InstantiationException
@@ -52,8 +49,6 @@ public class RootClass /* #ANNOTATIONS extends AbstractProcessor */
     public @interface Candidate
     {
     }
-
-    ;
 
     public class RootArgs
     {
@@ -81,7 +76,7 @@ public class RootClass /* #ANNOTATIONS extends AbstractProcessor */
         {
             System.out.println("Discovering root class annotations...");
             classFiles = new ArrayList<File>();
-            lookup(new File("src"), classFiles);
+            lookup(new File("app/src"), classFiles);
             System.out.println("Done discovering annotations. Building jar file.");
             File builtPath = getBuiltPath();
             if (null != builtPath)
@@ -160,7 +155,7 @@ public class RootClass /* #ANNOTATIONS extends AbstractProcessor */
                 {
                 }
 
-                File rawFolder = new File("res/raw");
+                File rawFolder = new File("app/src/main/res/raw");
                 if (!rawFolder.exists())
                 {
                     rawFolder.mkdirs();
@@ -172,7 +167,7 @@ public class RootClass /* #ANNOTATIONS extends AbstractProcessor */
                 {
                     cmd = new String[]{
                             "cmd", "/C",
-                            "dx --dex --output=res/raw/anbuild.dex "
+                            "dx --dex --output=app/src/main/res/raw/anbuild.dex "
                                     + builtPath + File.separator + "anbuild.jar"
                     };
                 }
@@ -181,7 +176,7 @@ public class RootClass /* #ANNOTATIONS extends AbstractProcessor */
                     cmd = new String[]{
                             getPathToDx(),
                             "--dex",
-                            "--output=res/raw/anbuild.dex",
+                            "--output=app/src/main/res/raw/anbuild.dex",
                             builtPath + File.separator + "anbuild.jar"
                     };
                 }
@@ -192,23 +187,29 @@ public class RootClass /* #ANNOTATIONS extends AbstractProcessor */
                 }
                 catch (IOException e)
                 {
+                    System.out.println(e);
                 }
                 catch (InterruptedException e)
                 {
+                    System.out.println(e);
                 }
             }
             System.out.println("All done. ::: anbuild.dex should now be in your project's res/raw/ folder :::");
+
+            //delete jar file to avoid build errors
+            File tmpJar = new File(builtPath + File.separator + "anbuild.jar");
+            tmpJar.delete();
         }
 
         protected void lookup(File path, List<File> fileList)
         {
-            String desourcedPath = path.toString().replace("src/", "");
+            String desourcedPath = path.toString().replace("app/src/main/java/", "");
             File[] files = path.listFiles();
             for (File file : files)
             {
                 if (file.isDirectory())
                 {
-                    if (-1 == file.getAbsolutePath().indexOf(AVOIDDIRPATH))
+                    if (!file.getAbsolutePath().contains(AVOIDDIRPATH))
                     {
                         lookup(file, fileList);
                     }
@@ -221,6 +222,9 @@ public class RootClass /* #ANNOTATIONS extends AbstractProcessor */
                         {
                             final String fileNamePrefix = file.getName().replace(".java", "");
                             final File compiledPath = new File(getBuiltPath().toString() + File.separator + desourcedPath);
+                            System.out.println(desourcedPath);
+                            System.out.println(compiledPath);
+                            System.out.println(fileNamePrefix);
                             File[] classAndInnerClassFiles = compiledPath.listFiles(new FilenameFilter()
                             {
                                 @Override
@@ -351,7 +355,7 @@ public class RootClass /* #ANNOTATIONS extends AbstractProcessor */
         {
             File foundPath = null;
 
-            File ideaPath = new File("out" + File.separator + "production"); // IntelliJ
+            File ideaPath = new File("app" + File.separator + "build" + File.separator + "intermediates" + File.separator + "classes" + File.separator + "debug"); // IntelliJ
             if (ideaPath.isDirectory())
             {
                 File[] children = ideaPath.listFiles(new FileFilter()
@@ -362,10 +366,11 @@ public class RootClass /* #ANNOTATIONS extends AbstractProcessor */
                         return pathname.isDirectory();
                     }
                 });
-                if (children.length > 0)
+                foundPath = new File(ideaPath.getAbsolutePath());
+                /*if (children.length > 0)
                 {
                     foundPath = new File(ideaPath.getAbsolutePath() + File.separator + children[0].getName());
-                }
+                }*/
             }
             if (null == foundPath)
             {
